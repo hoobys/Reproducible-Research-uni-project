@@ -5,3 +5,4 @@ Authors:
 - Hubert Wojewoda
 - Jakub Żmujdzin
 - Jakub Wujec
+- Adam Janczyszyn
