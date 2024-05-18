@@ -1,5 +1,6 @@
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
+
 from config.const import SEED
 
 
@@ -161,6 +162,7 @@ def fill_nulls_with_mean(df: pd.DataFrame) -> pd.DataFrame:
     for column_name in numeric_cols:
         df[column_name] = df[column_name].fillna(df[column_name].mean())
     return df
+
 
 def wrangle_data(df: pd.DataFrame) -> pd.DataFrame:
     """
