@@ -1,7 +1,8 @@
+import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
-from config.const import SEED
+from rr_project.config.const import SEED
 
 
 def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
@@ -112,6 +113,7 @@ def preprocessing_feature_selection(preprocessed_df: pd.DataFrame) -> pd.DataFra
         "total_rec_late_fee",
         "collection_recovery_fee",
         "last_pymnt_amnt",
+        "loan_status",
     ]
     pp_df = preprocessed_df.drop(columns=manual_scr)
     missing_ovr_50_perc_features = missing_values(pp_df)[missing_values(pp_df) > 0.5]
@@ -164,6 +166,88 @@ def fill_nulls_with_mean(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def iv_woe(data: pd.DataFrame, target: str, bins=10) -> pd.DataFrame:
+    """
+    Calculates the Information Value (IV) and Weight of Evidence (WoE) for all independent variables in the data.
+
+    This function first checks if the independent variable is numeric and has more than 10 unique values. If so, it bins the variable into deciles.
+    It then calculates the number of events (target = 1) and non-events (target = 0) in each bin.
+    The WoE is calculated as the natural logarithm of the division of the percentage of non-events and the percentage of events.
+    The IV is calculated as the product of the WoE and the difference between the percentage of events and the percentage of non-events.
+    The function prints the IV for each variable and returns a DataFrame with the IV for all variables.
+
+    The code author is Ailurophile, and the original code can be found at
+    https://stackoverflow.com/questions/60892714/how-to-get-the-weight-of-evidence-woe-and-information-value-iv-in-python-pan
+
+    Args:
+        data (pd.DataFrame): The DataFrame containing the independent and dependent variables.
+        target (str): The name of the target variable in the data.
+        bins (int, optional): The number of bins to use for numeric variables with more than 10 unique values. Defaults to 10.
+
+    Returns:
+        pd.DataFrame: A DataFrame with the IV for all independent variables.
+    """
+    newDF = pd.DataFrame()
+
+    # Extract Column Names
+    cols = data.columns
+
+    # Run WOE and IV on all the independent variables
+    for ivars in cols[~cols.isin([target])]:
+        if (data[ivars].dtype.kind in "bifc") and (len(np.unique(data[ivars])) > 10):
+            binned_x = pd.qcut(data[ivars], bins, duplicates="drop")
+            d0 = pd.DataFrame({"x": binned_x, "y": data[target]})
+        else:
+            d0 = pd.DataFrame({"x": data[ivars], "y": data[target]})
+
+        # Calculate the number of events in each group (bin)
+        d = d0.groupby("x", as_index=False).agg({"y": ["count", "sum"]})
+        d.columns = ["Cutoff", "N", "Events"]
+
+        # Calculate % of events in each group.
+        d["% of Events"] = np.maximum(d["Events"], 0.5) / d["Events"].sum()
+
+        # Calculate the non events in each group.
+        d["Non-Events"] = d["N"] - d["Events"]
+        # Calculate % of non events in each group.
+        d["% of Non-Events"] = np.maximum(d["Non-Events"], 0.5) / d["Non-Events"].sum()
+
+        # Calculate WOE by taking natural log of division of % of non-events and % of events
+        d["WoE"] = np.log(d["% of Events"] / d["% of Non-Events"])
+        d["IV"] = d["WoE"] * (d["% of Events"] - d["% of Non-Events"])
+        d.insert(loc=0, column="Variable", value=ivars)
+        temp = pd.DataFrame(
+            {"Variable": [ivars], "IV": [d["IV"].sum()]}, columns=["Variable", "IV"]
+        )
+        newDF = pd.concat([newDF, temp], axis=0)
+
+    return newDF
+
+
+def iv_selection(data: pd.DataFrame, target: str, threshold=0.02) -> pd.DataFrame:
+    """
+    Selects the independent variables based on the Information Value (IV) of the variables.
+
+    This function calculates the IV for all independent variables in the data and selects the variables with an IV
+    greater than the threshold. It prints the IV for each variable and returns a DataFrame with the IV for all variables.
+
+    Args:
+        data (pd.DataFrame): The DataFrame containing the independent and dependent variables.
+        target (str): The name of the target variable in the data.
+        threshold (float, optional): The threshold value for selecting variables based on IV. Defaults to 0.02.
+
+    Returns:
+        pd.DataFrame: A DataFrame with the IV for all independent variables greater than the threshold.
+    """
+    iv_values = iv_woe(data, target)
+    print(iv_values)
+    print(
+        "Variables with IV lower than threshold: ",
+        iv_values[iv_values.IV < threshold].Variable.tolist(),
+    )
+    return data[iv_values[iv_values.IV >= threshold].Variable.tolist() + ["target"]]
+
+
 def wrangle_data(df: pd.DataFrame) -> pd.DataFrame:
     """
     Wrangles the data by performing preprocessing, feature selection, label encoding, and filling null values.
@@ -173,6 +257,7 @@ def wrangle_data(df: pd.DataFrame) -> pd.DataFrame:
     2. Perform feature selection.
     3. Label encode all object columns.
     4. Fill null values with the mean of the respective columns.
+    5. Perform Information Value (IV) selection on the data.
 
     Args:
         df (pd.DataFrame): The source data, which is credit card loan data from Lending Club for the year 2018.
@@ -182,10 +267,16 @@ def wrangle_data(df: pd.DataFrame) -> pd.DataFrame:
 
     """
     preprocessed_df = preprocess_data(df)
+    print("Preprocessed data shape: ", preprocessed_df.shape)
     feature_selected_df = preprocessing_feature_selection(preprocessed_df)
+    print("Feature selected data shape: ", feature_selected_df.shape)
     label_encoded_df = label_encode_all(feature_selected_df)
+    print("Label encoded data shape: ", label_encoded_df.shape)
     wrangled_df = fill_nulls_with_mean(label_encoded_df)
-    return wrangled_df
+    print("Filled nulls data shape: ", wrangled_df.shape)
+    df_iv_selection = iv_selection(wrangled_df, "target")
+    print("IV selected data shape: ", df_iv_selection.shape)
+    return df_iv_selection
 
 
 if __name__ == "__main__":
