@@ -240,7 +240,7 @@ def iv_selection(data: pd.DataFrame, target: str, threshold=0.02) -> pd.DataFram
         pd.DataFrame: A DataFrame with the IV for all independent variables greater than the threshold.
     """
     iv_values = iv_woe(data, target)
-    print(iv_values)
+    print(iv_values.sort_values("IV", ascending=False))
     print(
         "Variables with IV lower than threshold: ",
         iv_values[iv_values.IV < threshold].Variable.tolist(),
