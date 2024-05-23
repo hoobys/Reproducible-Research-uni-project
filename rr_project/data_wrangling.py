@@ -114,6 +114,8 @@ def preprocessing_feature_selection(preprocessed_df: pd.DataFrame) -> pd.DataFra
         "collection_recovery_fee",
         "last_pymnt_amnt",
         "loan_status",
+        "last_fico_range_high",
+        "last_fico_range_low",
     ]
     pp_df = preprocessed_df.drop(columns=manual_scr)
     missing_ovr_50_perc_features = missing_values(pp_df)[missing_values(pp_df) > 0.5]
