@@ -285,8 +285,10 @@ def remove_collinear_variables(df, iv_values, correlation_threshold=0.6):
                 # Drop the variable with the lower IV
                 if iv_col1 > iv_col2:
                     columns_to_drop.add(col2)
+                    print(f'Dropped {col2} due to high correlation with {col1} and lower IV.')
                 else:
                     columns_to_drop.add(col1)
+                    print(f'Dropped {col1} due to high correlation with {col2} and lower IV.')
 
     # Drop the identified columns
     df_filtered = df.drop(columns=columns_to_drop)
