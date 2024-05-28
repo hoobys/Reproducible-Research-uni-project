@@ -1,5 +1,6 @@
 from typing import Dict, List, Tuple, Union
 
+import os
 import joblib
 import numpy as np
 import pandas as pd
@@ -26,14 +27,14 @@ def save_model(pipeline: Pipeline, model_name: str) -> None:
     Returns:
     None
     """
-    joblib.dump(pipeline, f"{model_name}.pkl")
+    joblib.dump(pipeline, f"./models/{model_name}.pkl")
     print(f"Model {model_name} has been trained and saved successfully.")
 
 
 def train_and_save_models(
     X_train: np.ndarray,
     y_train: np.ndarray,
-    scaler: StandardScaler,
+    scaler: StandardScaler = StandardScaler(),
     random_state: int = SEED,
 ) -> None:
     """
