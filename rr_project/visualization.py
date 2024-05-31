@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve, auc
 import os
 import joblib
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
 
 @dataclass
@@ -48,3 +49,36 @@ def load_models_and_generate_roc(
             model_infos.append(model_info)
 
     return get_roc_for_multiple_models(*model_infos)
+
+
+def load_model_and_generate_confusion_matrix(
+    model_path: str, X_test: np.ndarray, y_test: np.ndarray
+) -> plt.Figure:
+    """
+    Load a model from the specified path and generate a confusion matrix plot.
+
+    Parameters:
+    model_path (str): Path to the model file.
+    X_test (np.ndarray): Test feature matrix.
+    y_test (np.ndarray): True labels for the test set.
+
+    Returns:
+    plt.Figure: Figure object containing the confusion matrix plot.
+    """
+    # Load the model
+    model = joblib.load(model_path)
+
+    # Generate predictions
+    y_pred = model.predict(X_test)
+
+    # Compute the confusion matrix
+    cm = confusion_matrix(y_test, y_pred)
+
+    # Plot the confusion matrix
+    fig, ax = plt.subplots(figsize=(8, 6))
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+    disp.plot(ax=ax, cmap=plt.cm.Blues)
+    ax.set_title("Confusion Matrix")
+    plt.show()
+
+    return fig
