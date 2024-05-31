@@ -114,6 +114,8 @@ def preprocessing_feature_selection(preprocessed_df: pd.DataFrame) -> pd.DataFra
         "collection_recovery_fee",
         "last_pymnt_amnt",
         "loan_status",
+        "last_fico_range_high",
+        "last_fico_range_low",
     ]
     pp_df = preprocessed_df.drop(columns=manual_scr)
     missing_ovr_50_perc_features = missing_values(pp_df)[missing_values(pp_df) > 0.5]
@@ -224,7 +226,7 @@ def iv_woe(data: pd.DataFrame, target: str, bins=10) -> pd.DataFrame:
     return newDF
 
 
-def iv_selection(data: pd.DataFrame, target: str, threshold=0.02) -> pd.DataFrame:
+def iv_selection(data: pd.DataFrame, target: str, threshold=0.02):
     """
     Selects the independent variables based on the Information Value (IV) of the variables.
 
@@ -237,15 +239,61 @@ def iv_selection(data: pd.DataFrame, target: str, threshold=0.02) -> pd.DataFram
         threshold (float, optional): The threshold value for selecting variables based on IV. Defaults to 0.02.
 
     Returns:
-        pd.DataFrame: A DataFrame with the IV for all independent variables greater than the threshold.
+        pd.DataFrame: A DataFrame with the selected independent variables and the target variable.
+        pd.DataFrame: A DataFrame with the IV values for all independent variables.
     """
-    iv_values = iv_woe(data, target)
-    print(iv_values)
+    iv_values = iv_woe(
+        data, target
+    )  # Assuming iv_woe returns a DataFrame with 'Variable' and 'IV' columns
+    print(iv_values.sort_values("IV", ascending=False))
     print(
         "Variables with IV lower than threshold: ",
         iv_values[iv_values.IV < threshold].Variable.tolist(),
     )
-    return data[iv_values[iv_values.IV >= threshold].Variable.tolist() + ["target"]]
+    selected_vars = iv_values[iv_values.IV >= threshold].Variable.tolist()
+    return data[selected_vars + [target]], iv_values
+
+
+def remove_collinear_variables(df, iv_values, correlation_threshold=0.6):
+    """
+    Remove collinear variables based on correlation threshold and Information Value (IV).
+
+    Parameters:
+    - df: pd.DataFrame containing the dataset with selected features and the target variable.
+    - iv_values: pd.DataFrame containing the IV values for each feature.
+    - correlation_threshold: float, threshold for considering variables as collinear (default is 0.6).
+
+    Returns:
+    - pd.DataFrame: DataFrame with collinear variables removed.
+    - set: Set of columns that were dropped due to collinearity.
+    """
+    # Calculate the correlation matrix
+    correlation_matrix = df.corr()
+
+    # Create a set to hold columns to drop
+    columns_to_drop = set()
+
+    # Iterate over the correlation matrix
+    for i in range(len(correlation_matrix.columns)):
+        for j in range(i):
+            if abs(correlation_matrix.iloc[i, j]) > correlation_threshold:
+                col1 = correlation_matrix.columns[i]
+                col2 = correlation_matrix.columns[j]
+                iv_col1 = iv_values[iv_values["Variable"] == col1]["IV"].values[0]
+                iv_col2 = iv_values[iv_values["Variable"] == col2]["IV"].values[0]
+
+                # Drop the variable with the lower IV
+                if iv_col1 > iv_col2:
+                    columns_to_drop.add(col2)
+                    print(f'Dropped {col2} due to high correlation with {col1} and lower IV.')
+                else:
+                    columns_to_drop.add(col1)
+                    print(f'Dropped {col1} due to high correlation with {col2} and lower IV.')
+
+    # Drop the identified columns
+    df_filtered = df.drop(columns=columns_to_drop)
+
+    return df_filtered, columns_to_drop
 
 
 def wrangle_data(df: pd.DataFrame) -> pd.DataFrame:
