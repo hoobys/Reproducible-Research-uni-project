@@ -33,15 +33,15 @@ def get_roc_for_multiple_models(*args: ModelInfo) -> plt.Figure:
 
 
 def load_models_and_generate_roc(
-    models_directory: str, X_test: np.ndarray, y_test: np.ndarray
+    models_directory: str, X_test: np.ndarray, y_test: np.ndarray, suffix: str = ".pkl"
 ) -> plt.Figure:
     model_infos = []
     for file_name in os.listdir(models_directory):
-        if file_name.endswith(".pkl"):
+        if file_name.endswith(suffix):
             model_path = os.path.join(models_directory, file_name)
             model = joblib.load(model_path)
             y_proba = model.predict_proba(X_test)[:, 1]
-            model_name = file_name.replace(".pkl", "")
+            model_name = file_name.replace(suffix, "")
             model_info = ModelInfo(
                 y_proba=y_proba, y_true=y_test, model_name=model_name
             )

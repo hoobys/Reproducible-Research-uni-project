@@ -36,6 +36,7 @@ def train_and_save_models(
     y_train: np.ndarray,
     scaler: StandardScaler = StandardScaler(),
     random_state: int = SEED,
+    suffix: str = "",
 ) -> None:
     """
     Train and save specified models using a scikit-learn pipeline.
@@ -49,13 +50,16 @@ def train_and_save_models(
     None
     """
     models = {
-        "logistic_regression_model": LogisticRegression(random_state=random_state),
-        "decision_tree_model": DecisionTreeClassifier(random_state=random_state),
-        "random_forest_model": RandomForestClassifier(random_state=random_state),
-        "gradient_boosting_model": GradientBoostingClassifier(
-            random_state=random_state
-        ),
-        "xgboost_model": XGBClassifier(
+        "logistic_regression_model"
+        + suffix: LogisticRegression(random_state=random_state),
+        "decision_tree_model"
+        + suffix: DecisionTreeClassifier(random_state=random_state),
+        "random_forest_model"
+        + suffix: RandomForestClassifier(random_state=random_state),
+        "gradient_boosting_model"
+        + suffix: GradientBoostingClassifier(random_state=random_state),
+        "xgboost_model"
+        + suffix: XGBClassifier(
             random_state=random_state, use_label_encoder=False, eval_metric="logloss"
         ),
     }

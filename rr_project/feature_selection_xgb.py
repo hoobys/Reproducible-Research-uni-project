@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from xgboost import XGBClassifier
 
-from rr_project.config import SEED
+from rr_project.config.const import SEED
 
 
 def feature_selection_xgb(
@@ -35,10 +35,10 @@ def feature_selection_xgb(
     sorted_indices = np.argsort(feature_importances)[::-1]
 
     selected_indices = sorted_indices[:num_features]
-    selected_features = (
-        X[:, selected_indices]
-        if isinstance(X, np.ndarray)
-        else X.iloc[:, selected_indices].values
-    )
 
-    return selected_features, selected_indices
+    if isinstance(X, np.ndarray):
+        feature_names = selected_indices.tolist()
+    else:
+        feature_names = X.columns[selected_indices].tolist()
+
+    return feature_names
