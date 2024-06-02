@@ -8,6 +8,7 @@ from sklearn.compose import ColumnTransformer, make_column_selector
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import OneHotEncoder, RobustScaler
+from sklearn.metrics import roc_auc_score, average_precision_score, f1_score, accuracy_score, precision_score
 
 from rr_project.config.const import SEED
 
@@ -30,7 +31,7 @@ def save_model(pipeline: Pipeline, model_name: str) -> None:
 def get_pipeline_for_model(model, model_params: dict = None):
     numerical_prep = make_pipeline(RobustScaler())
     categorical_prep = make_pipeline(
-        OneHotEncoder(handle_unknown="ignore", sparse=False, drop="first"),
+        OneHotEncoder(handle_unknown="ignore", sparse_output=False, drop="first"),
     )
     preprocess = ColumnTransformer(
         [
@@ -159,3 +160,24 @@ def run_hyperopt(
         results.append(result)
         logger.info(f"Best score: {result.best_score}")
     return HyperoptResults(results=results)
+
+@dataclass
+class ClassificationScores:
+    au_roc: float
+    au_prc: float
+    f1: float
+    accuracy: float
+    precision: float
+
+def get_classification_scores(
+    model: BaseEstimator, x: pd.DataFrame, y: pd.Series
+) -> ClassificationScores:
+    y_pred = model.predict(x)
+    y_pred_proba = model.predict_proba(x)[:, 1]
+    return ClassificationScores(
+        au_roc=roc_auc_score(y, y_pred_proba),
+        au_prc=average_precision_score(y, y_pred_proba),
+        f1=f1_score(y, y_pred),
+        accuracy=accuracy_score(y, y_pred),
+        precision=precision_score(y, y_pred),
+    )
