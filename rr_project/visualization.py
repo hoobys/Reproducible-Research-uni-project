@@ -115,6 +115,7 @@ def plot_ks_curve(y_true, y_proba, ax, model_name):
         label=f"KS={ks_stat:.2f}",
     )
     ax.set_title(f"KS Curve - {model_name}")
+    ax.invert_xaxis()
     ax.set_xlabel("Threshold")
     ax.set_ylabel("Value")
     ax.legend()
