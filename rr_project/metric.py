@@ -84,8 +84,8 @@ def load_models_and_generate_tables(
         "KS": [],
     }
 
-    for model_name, model_name_xgb in zip(model_names, model_names_xgb):
-        model_path_iv = os.path.join(models_directory, model_names_iv + "_cv.pkl")
+    for model_name_iv, model_name_xgb in zip(model_names_iv, model_names_xgb):
+        model_path_iv = os.path.join(models_directory, model_name_iv + "_cv.pkl")
         model_path_xgb = os.path.join(models_directory, model_name_xgb + "_cv.pkl")
 
         if os.path.exists(model_path_iv):

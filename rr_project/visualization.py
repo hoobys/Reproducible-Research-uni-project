@@ -126,14 +126,16 @@ def load_models_and_generate_ks_curve(
     y_test_iv: np.ndarray,
     X_test_xgb: np.ndarray,
     y_test_xgb: np.ndarray,
+    iv_model_name: str = "XGBClassifier_model_iv_cv.pkl",
+    xgb_model_name: str = "GradientBoostingClassifier_model_xgb_cv.pkl",
 ) -> plt.Figure:
     fig, axes = plt.subplots(1, 2, figsize=(14, 7))
 
     for ax, (feature_type, X_test, y_test, model_name) in zip(
         axes,
         [
-            ("IV Feature Selection", X_test_iv, y_test_iv, "xgboost_model.pkl"),
-            ("XGB Feature Selection", X_test_xgb, y_test_xgb, "xgboost_model_xgb.pkl"),
+            ("IV Feature Selection", X_test_iv, y_test_iv, iv_model_name),
+            ("XGB Feature Selection", X_test_xgb, y_test_xgb, xgb_model_name),
         ],
     ):
         model_path = os.path.join(models_directory, model_name)
