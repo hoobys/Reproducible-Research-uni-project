@@ -36,5 +36,5 @@ def feature_selection_xgb(
         feature_names = selected_indices.tolist()
     else:
         feature_names = X.columns[selected_indices].tolist()
-
+    print(f'XGB Feat Selection Threshold: {importance_threshold} - Selected Features: {len(feature_names)}')
     return feature_names

@@ -57,14 +57,17 @@ def load_models_and_generate_tables(
     y_test_xgb: np.ndarray,
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     model_names = [
-        "xgboost_model",
-        "logistic_regression_model",
-        "decision_tree_model",
-        "random_forest_model",
-        "gradient_boosting_model",
+        "DecisionTreeClassifier_model",
+        "ExtraTreesClassifier_model",
+        "GradientBoostingClassifier_model",
+        "LGBMClassifier_model",
+        "LogisticRegression_model",
+        "RandomForestClassifier_model",
+        "XGBClassifier_model",
     ]
 
     model_names_xgb = [model_name + "_xgb" for model_name in model_names]
+    model_names_iv = [model_name + "_iv" for model_name in model_names]
 
     data_iv_feature_selection = {
         "Model": model_names,
@@ -82,8 +85,8 @@ def load_models_and_generate_tables(
     }
 
     for model_name, model_name_xgb in zip(model_names, model_names_xgb):
-        model_path_iv = os.path.join(models_directory, model_name + ".pkl")
-        model_path_xgb = os.path.join(models_directory, model_name_xgb + ".pkl")
+        model_path_iv = os.path.join(models_directory, model_names_iv + "_cv.pkl")
+        model_path_xgb = os.path.join(models_directory, model_name_xgb + "_cv.pkl")
 
         if os.path.exists(model_path_iv):
             model_iv = joblib.load(model_path_iv)
