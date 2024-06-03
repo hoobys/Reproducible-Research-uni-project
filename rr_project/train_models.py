@@ -5,10 +5,16 @@ import pandas as pd
 from loguru import logger
 from sklearn.base import BaseEstimator
 from sklearn.compose import ColumnTransformer, make_column_selector
+from sklearn.metrics import (
+    accuracy_score,
+    average_precision_score,
+    f1_score,
+    precision_score,
+    roc_auc_score,
+)
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import OneHotEncoder, RobustScaler
-from sklearn.metrics import roc_auc_score, average_precision_score, f1_score, accuracy_score, precision_score
 
 from rr_project.config.const import SEED
 
@@ -153,7 +159,7 @@ def run_hyperopt_one_model(
         model_input.hyperopt_space,
         n_iter=n_iter,
         scoring="average_precision",
-        n_jobs=-1,
+        n_jobs=-2,
         cv=cv,
         random_state=random_state,
     )
@@ -198,6 +204,7 @@ def run_hyperopt(
         results.append(result)
         logger.info(f"Best score: {result.best_score}")
     return HyperoptResults(results=results)
+
 
 @dataclass
 class ClassificationScores:
