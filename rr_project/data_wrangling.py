@@ -285,10 +285,14 @@ def remove_collinear_variables(df, iv_values, correlation_threshold=0.6):
                 # Drop the variable with the lower IV
                 if iv_col1 > iv_col2:
                     columns_to_drop.add(col2)
-                    print(f'Dropped {col2} due to high correlation with {col1} and lower IV.')
+                    print(
+                        f"Dropped {col2} due to high correlation with {col1} and lower IV."
+                    )
                 else:
                     columns_to_drop.add(col1)
-                    print(f'Dropped {col1} due to high correlation with {col2} and lower IV.')
+                    print(
+                        f"Dropped {col1} due to high correlation with {col2} and lower IV."
+                    )
 
     # Drop the identified columns
     df_filtered = df.drop(columns=columns_to_drop)
@@ -323,10 +327,13 @@ def wrangle_data(df: pd.DataFrame) -> pd.DataFrame:
     wrangled_df = fill_nulls_with_mean(label_encoded_df)
     print("Filled nulls data shape: ", wrangled_df.shape)
     df_iv_selection = iv_selection(wrangled_df, "target")
-    print("IV selected data shape: ", df_iv_selection.shape)
+    print("IV selected data shape: ", df_iv_selection[0].shape)
     return df_iv_selection
 
 
 if __name__ == "__main__":
-    df = pd.read_csv("../data/credit_card_2018.csv")
+    from pathlib import Path
+
+    path = Path(__file__).parents[1] / "data" / "credit_card_2018.csv"
+    df = pd.read_csv(path)
     print(wrangle_data(df))
