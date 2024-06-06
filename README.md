@@ -68,3 +68,7 @@ Contributions are welcome! Please fork the repository and create a pull request 
 3. Commit your changes (`git commit -m 'Add some feature'`)
 4. Push to the branch (`git push origin feature/your-feature`)
 5. Create a new pull request
+
+
+## Disclaimer
+For writing the descriptions, we have used ChatGPT Turbo 3.5 (May 2024). For writing code, we have leveraged GitHub Copilot in version as of May 2024.
